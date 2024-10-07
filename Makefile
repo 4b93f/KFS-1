@@ -1,19 +1,33 @@
-default : kernel
+FLAGS = -fno-builtin -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs
 
-header : header.s
-	nasm -f elf64 header.s
+default : kernel_bin
 
 boot : boot.s
-	nasm -f elf64 boot.s
+	nasm -f elf32 boot.s
 
-kernel : header boot
-	~/opt/x86_64-pc-elf/bin/ld -n -o kernel.bin -T linker.ld header.o boot.o
+kernel : kernel.c
+	gcc -m32 -ffreestanding ${FLAGS} kernel.c -o kernel.o 
+
+kernel_bin : boot kernel
+	ld -m elf_i386 -T linker.ld -o kernel.bin boot.o kernel.o
+	mkdir -p files/boot/grub
+	cp grub.cfg files/boot/grub
+	cp kernel.bin files/boot
+test :
+	nasm -f elf32 _boot.s
+	ld -m elf_i386 -T linker.ld -o kernel.bin _boot.o
 	mkdir -p files/boot/grub
 	cp grub.cfg files/boot/grub
 	cp kernel.bin files/boot
 
+build :
+	grub-mkrescue -o out.iso files
+
 clean :
 	rm -rf *.o
 	rm -rf kernel.bin
-	rm -rf isofiles
+	rm -rf files
+
+fclean : clean
+	rm -rf *.iso
 
