@@ -1,30 +1,27 @@
-bits 32
+MBALIGN  equ  1 << 0
+MEMINFO  equ  1 << 1
+MBFLAGS  equ  MBALIGN | MEMINFO
+MAGIC    equ  0x1BADB002
+CHECKSUM equ -(MAGIC + MBFLAGS)
 
 section .multiboot_header
-header_start:
-        dd 0xe85250d6 ; magic number
-        dd 0          ; protected mode code
-        dd header_end - header_start ; header length
-        dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header_start))
-
-        dw 0    ; type
-        dw 0    ; flags
-        dd 8    ; size
-header_end:
+align 4
+dd MAGIC
+dd MBFLAGS
+dd CHECKSUM
 
 section .text
+global _start:function (_start.end - _start)
 
-global start
-extern kernel_main
+_start:
 
-
-start:
-	mov esp, stack_space        ; set stack pointer
-	cli				; Disable interrupts
-	mov esp, stack_space
-	call kernel_main
+	; print string
+	mov word [0xb8000], 0x4034
+	mov word [0xb8002], 0x4032
 	hlt
 
-section .bss
-resb 8192			; 8KB for stack
-stack_space:
+	cli
+.hang: hlt
+	jmp .hang
+
+.end:

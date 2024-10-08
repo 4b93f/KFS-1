@@ -1,21 +1,13 @@
 FLAGS = -fno-builtin -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs
 
-default : kernel_bin
+default : all
 
 boot : boot.s
 	nasm -f elf32 boot.s
 
-kernel : kernel.c
-	gcc -m32 -ffreestanding ${FLAGS} kernel.c -o kernel.o 
-
-___kernel_bin : boot kernel
-	ld -m elf_i386 -T linker.ld -o kernel.bin boot.o kernel.o
-	mkdir -p files/boot/grub
-	cp grub.cfg files/boot/grub
-	cp kernel.bin files/boot
 build :
-	nasm -f elf32 _boot.s
-	ld -m elf_i386 -T linker.ld -o kernel.bin _boot.o
+	nasm -f elf32 boot.s
+	ld -m elf_i386 -T linker.ld -o kernel.bin boot.o
 	mkdir -p files/boot/grub
 	cp grub.cfg files/boot/grub
 	cp kernel.bin files/boot
